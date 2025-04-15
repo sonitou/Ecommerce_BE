@@ -1,4 +1,4 @@
 export declare class HashingService {
-    hash(value: string): any;
-    comparePassword(value: string, hash: string): any;
+    hash(value: string): Promise<string>;
+    comparePassword(value: string, hash: string): Promise<boolean>;
 }

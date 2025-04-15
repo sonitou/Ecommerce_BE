@@ -5,10 +5,10 @@ export declare class TokenService {
     constructor(jwtService: JwtService);
     signAccessToken(payload: {
         userId: number;
-    }): any;
+    }): string;
     signRefreshToken(payload: {
         userId: number;
-    }): any;
+    }): string;
     verifyAccessToken(token: string): Promise<TokenPayload>;
     verifyRefreshToken(token: string): Promise<TokenPayload>;
 }
