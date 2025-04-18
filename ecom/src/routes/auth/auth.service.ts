@@ -4,38 +4,29 @@ import { HashingService } from 'src/shared/services/hashing.service'
 import { PrismaService } from 'src/shared/services/prisma.service'
 import { TokenService } from 'src/shared/services/token.service'
 import { RolesService } from './roles.service'
-import { RegisterBodyDTO } from './auth.dto'
-import { error } from 'console'
 import { isUniqueConstraintPrismaError } from 'src/shared/helpers'
+import { RegisterBodyType } from './auth.model'
+import { AuthRepository } from './auth.repo'
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly hashingService: HashingService,
-    private readonly prismaService: PrismaService,
-    private readonly tokenService: TokenService,
     private readonly rolesService: RolesService,
+    private readonly authRepository: AuthRepository,
   ) {}
 
-  async register(body: RegisterBodyDTO) {
+  async register(body: RegisterBodyType) {
     try {
       const clientRoleId = await this.rolesService.getClientRoleId()
       const hashedPassword = await this.hashingService.hash(body.password)
-      const user = await this.prismaService.user.create({
-        data: {
-          name: body.name,
-          email: body.email,
-          password: hashedPassword,
-          phoneNumber: body.phoneNumber,
-          roleId: clientRoleId,
-        },
-        // omit: {
-        //   password: true,
-        //   totpSecret: true,
-        // },
+      return await this.authRepository.createUser({
+        email: body.email,
+        name: body.name,
+        phoneNumber: body.phoneNumber,
+        password: hashedPassword,
+        roleId: clientRoleId,
       })
-      const { password, totpSecret, ...rest } = user
-      return rest
     } catch (error) {
       if (isUniqueConstraintPrismaError(error)) {
         throw new ConflictException('Email already exists')

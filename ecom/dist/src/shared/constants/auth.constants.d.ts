@@ -9,4 +9,9 @@ export declare const ConditionGuard: {
     readonly And: "and";
     readonly Or: "or";
 };
+export declare const UserStatus: {
+    readonly ACTIVE: "ACTIVE";
+    readonly INACTIVE: "INACTIVE";
+    readonly BLOCKED: "BLOCKED";
+};
 export type ConditionGuardType = (typeof ConditionGuard)[keyof typeof ConditionGuard];
