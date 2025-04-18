@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { ConflictException, Injectable, UnauthorizedException, UnprocessableEntityException } from '@nestjs/common'
+import { ConflictException, Injectable } from '@nestjs/common'
 import { HashingService } from 'src/shared/services/hashing.service'
 import { PrismaService } from 'src/shared/services/prisma.service'
 import { TokenService } from 'src/shared/services/token.service'
-import { v4 as uuidv4 } from 'uuid'
-import { isNotFoundPrismaError, isUniqueConstraintPrismaError } from 'src/shared/helpers'
 import { RolesService } from './roles.service'
+import { RegisterBodyDTO } from './auth.dto'
+import { error } from 'console'
+import { isUniqueConstraintPrismaError } from 'src/shared/helpers'
 
 @Injectable()
 export class AuthService {
@@ -16,7 +17,7 @@ export class AuthService {
     private readonly rolesService: RolesService,
   ) {}
 
-  async register(body: any) {
+  async register(body: RegisterBodyDTO) {
     try {
       const clientRoleId = await this.rolesService.getClientRoleId()
       const hashedPassword = await this.hashingService.hash(body.password)
@@ -28,12 +29,13 @@ export class AuthService {
           phoneNumber: body.phoneNumber,
           roleId: clientRoleId,
         },
-        omit: {
-          password: true,
-          totpSecret: true,
-        },
+        // omit: {
+        //   password: true,
+        //   totpSecret: true,
+        // },
       })
-      return user
+      const { password, totpSecret, ...rest } = user
+      return rest
     } catch (error) {
       if (isUniqueConstraintPrismaError(error)) {
         throw new ConflictException('Email already exists')

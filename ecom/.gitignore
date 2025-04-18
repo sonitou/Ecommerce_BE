@@ -1,13 +1,10 @@
-# compiled output
-/dist
-/node_modules
-/build
 
 # compiled output
 /dist
 /node_modules
 /build
 
+.gitignore
 # Logs
 logs
 *.log
