@@ -15,7 +15,8 @@ const jwt_1 = require("@nestjs/jwt");
 const access_token_guard_1 = require("./guards/access-token.guard");
 const api_key_guard_1 = require("./guards/api-key.guard");
 const authentication_guard_1 = require("./guards/authentication.guard");
-const sharedService = [prisma_service_1.PrismaService, hashing_service_1.HashingService, token_service_1.TokenService];
+const shared_user_repo_1 = require("./repositories/shared-user-repo");
+const sharedService = [prisma_service_1.PrismaService, hashing_service_1.HashingService, token_service_1.TokenService, shared_user_repo_1.SharedUserRepository];
 let SharedModule = class SharedModule {
 };
 exports.SharedModule = SharedModule;
