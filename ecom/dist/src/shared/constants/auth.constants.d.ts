@@ -14,4 +14,10 @@ export declare const UserStatus: {
     readonly INACTIVE: "INACTIVE";
     readonly BLOCKED: "BLOCKED";
 };
+export declare const TypeOfVerificationCode: {
+    readonly REGISTER: "REGISTER";
+    readonly FORGOT_PASSWORD: "FORGOT_PASSWORD";
+    readonly LOGIN: "LOGIN";
+    readonly DISABLE_2FA: "DISABLE_2FA";
+};
 export type ConditionGuardType = (typeof ConditionGuard)[keyof typeof ConditionGuard];

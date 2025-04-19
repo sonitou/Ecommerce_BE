@@ -9,5 +9,6 @@ declare const envConfig: {
     ADMIN_PASSWORD: string;
     ADMIN_NAME: string;
     ADMIN_PHONE_NUMBER: string;
+    OTP_EXPIRES_IN: string;
 };
 export default envConfig;

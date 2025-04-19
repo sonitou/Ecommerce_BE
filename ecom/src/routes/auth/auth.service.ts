@@ -1,11 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { ConflictException, Injectable } from '@nestjs/common'
 import { HashingService } from 'src/shared/services/hashing.service'
-import { PrismaService } from 'src/shared/services/prisma.service'
-import { TokenService } from 'src/shared/services/token.service'
 import { RolesService } from './roles.service'
 import { isUniqueConstraintPrismaError } from 'src/shared/helpers'
-import { RegisterBodyType } from './auth.model'
+import { RegisterBodyType, SendOTPBodyType } from './auth.model'
 import { AuthRepository } from './auth.repo'
 
 @Injectable()
@@ -33,6 +31,10 @@ export class AuthService {
       }
       throw error
     }
+  }
+
+  sendOTP(body: SendOTPBodyType) {
+    return body
   }
 
   // async login(body: any) {

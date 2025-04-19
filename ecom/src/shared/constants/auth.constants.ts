@@ -19,4 +19,11 @@ export const UserStatus = {
   BLOCKED: 'BLOCKED',
 } as const
 
+export const TypeOfVerificationCode = {
+  REGISTER: 'REGISTER',
+  FORGOT_PASSWORD: 'FORGOT_PASSWORD',
+  LOGIN: 'LOGIN',
+  DISABLE_2FA: 'DISABLE_2FA',
+} as const
+
 export type ConditionGuardType = (typeof ConditionGuard)[keyof typeof ConditionGuard]

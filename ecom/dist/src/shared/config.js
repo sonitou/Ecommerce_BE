@@ -22,6 +22,7 @@ const ConfigSchema = zod_1.z.object({
     ADMIN_PASSWORD: zod_1.z.string(),
     ADMIN_NAME: zod_1.z.string(),
     ADMIN_PHONE_NUMBER: zod_1.z.string(),
+    OTP_EXPIRES_IN: zod_1.z.string(),
 });
 const configServer = ConfigSchema.safeParse(process.env);
 if (!configServer.success) {
