@@ -9,6 +9,7 @@ import { SharedUserRepository } from 'src/shared/repositories/shared-user-repo'
 import envConfig from 'src/shared/config'
 import * as ms from 'ms'
 import { addMilliseconds } from 'date-fns'
+import { TypeOfVerificationCode } from 'src/shared/constants/auth.constants'
 
 @Injectable()
 export class AuthService {
@@ -21,6 +22,31 @@ export class AuthService {
 
   async register(body: RegisterBodyType) {
     try {
+      const verificationCode = await this.authRepository.findUniqueVerificationCode({
+        email_code_type: {
+          email: body.email,
+          code: body.code,
+          type: TypeOfVerificationCode.REGISTER,
+        },
+      })
+
+      if (!verificationCode) {
+        throw new UnprocessableEntityException([
+          {
+            message: 'Mã OTP không hợp lệ hoặc đã hết hạn',
+            path: 'code',
+          },
+        ])
+      }
+      if (verificationCode.expiresAt < new Date()) {
+        throw new UnprocessableEntityException([
+          {
+            message: 'Mã OTP đã hết hạn',
+            path: 'code',
+          },
+        ])
+      }
+
       const clientRoleId = await this.rolesService.getClientRoleId()
       const hashedPassword = await this.hashingService.hash(body.password)
       return await this.authRepository.createUser({
@@ -46,7 +72,7 @@ export class AuthService {
   async sendOTP(body: SendOTPBodyType) {
     // 1. kiểm tra xem email đã tồn tại trong db chưa
     const user = await this.sharedUserRepository.findUnique({ email: body.email })
-    if (!user) {
+    if (user) {
       throw new UnprocessableEntityException([
         {
           message: 'Email is not exists',
