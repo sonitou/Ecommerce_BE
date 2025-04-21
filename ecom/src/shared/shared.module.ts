@@ -7,7 +7,8 @@ import { AccessTokenGuard } from './guards/access-token.guard'
 import { APIKeyGuard } from './guards/api-key.guard'
 import { AuthenticationGuard } from './guards/authentication.guard'
 import { SharedUserRepository } from './repositories/shared-user-repo'
-const sharedService = [PrismaService, HashingService, TokenService, SharedUserRepository]
+import { EmailService } from 'src/routes/auth/email.service'
+const sharedService = [PrismaService, HashingService, TokenService, SharedUserRepository, EmailService]
 @Global()
 @Module({
   providers: [
