@@ -8,7 +8,15 @@ import { APIKeyGuard } from './guards/api-key.guard'
 import { AuthenticationGuard } from './guards/authentication.guard'
 import { SharedUserRepository } from './repositories/shared-user-repo'
 import { EmailService } from 'src/routes/auth/email.service'
-const sharedService = [PrismaService, HashingService, TokenService, SharedUserRepository, EmailService]
+import { SharedRoleRepository } from './repositories/shared-role.repo'
+const sharedService = [
+  PrismaService,
+  HashingService,
+  TokenService,
+  SharedUserRepository,
+  EmailService,
+  SharedRoleRepository,
+]
 @Global()
 @Module({
   providers: [
