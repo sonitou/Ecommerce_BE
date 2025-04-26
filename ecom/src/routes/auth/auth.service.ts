@@ -3,13 +3,19 @@ import { HttpException, Injectable, UnauthorizedException, UnprocessableEntityEx
 import { HashingService } from 'src/shared/services/hashing.service'
 import { RolesService } from './roles.service'
 import { generateOTP, isNotFoundPrismaError, isUniqueConstraintPrismaError } from 'src/shared/helpers'
-import { LoginBodyType, RefreshTokenBodyType, RegisterBodyType, SendOTPBodyType } from './auth.model'
+import {
+  ForgotPasswordBodyType,
+  LoginBodyType,
+  RefreshTokenBodyType,
+  RegisterBodyType,
+  SendOTPBodyType,
+} from './auth.model'
 import { AuthRepository } from './auth.repo'
 import { SharedUserRepository } from 'src/shared/repositories/shared-user-repo'
 import envConfig from 'src/shared/config'
 import * as ms from 'ms'
 import { addMilliseconds } from 'date-fns'
-import { TypeOfVerificationCode } from 'src/shared/constants/auth.constants'
+import { TypeOfVerificationCode, TypeOfVerificationCodeType } from 'src/shared/constants/auth.constants'
 import { EmailService } from './email.service'
 import { TokenService } from 'src/shared/services/token.service'
 import { AccessTokenPayloadCreate } from 'src/shared/types/jwt.types'
@@ -21,6 +27,7 @@ import {
   OTPExpiredException,
   RefreshTokenAlreadyUsedException,
 } from './auth.error'
+import { SharedRoleRepository } from 'src/shared/repositories/shared-role.repo'
 
 @Injectable()
 export class AuthService {
@@ -31,34 +38,35 @@ export class AuthService {
     private readonly sharedUserRepository: SharedUserRepository,
     private readonly emailService: EmailService,
     private readonly tokenService: TokenService,
+    private readonly sharedRoleRepository: SharedRoleRepository,
   ) {}
 
   async register(body: RegisterBodyType) {
     try {
-      const verificationCode = await this.authRepository.findUniqueVerificationCode({
-        email_code_type: {
-          email: body.email,
-          code: body.code,
-          type: TypeOfVerificationCode.REGISTER,
-        },
-      })
-
-      if (!verificationCode) {
-        throw InvalidOTPException
-      }
-      if (verificationCode.expiresAt < new Date()) {
-        throw OTPExpiredException
-      }
-
-      const clientRoleId = await this.rolesService.getClientRoleId()
-      const hashedPassword = await this.hashingService.hash(body.password)
-      return await this.authRepository.createUser({
+      await this.validateVerificationCode({
         email: body.email,
-        name: body.name,
-        phoneNumber: body.phoneNumber,
-        password: hashedPassword,
-        roleId: clientRoleId,
+        code: body.code,
+        type: TypeOfVerificationCode.REGISTER,
       })
+      const clientRoleId = await this.sharedRoleRepository.getClientRoleId()
+      const hashedPassword = await this.hashingService.hash(body.password)
+      const [user] = await Promise.all([
+        this.authRepository.createUser({
+          email: body.email,
+          name: body.name,
+          phoneNumber: body.phoneNumber,
+          password: hashedPassword,
+          roleId: clientRoleId,
+        }),
+        this.authRepository.deleteVerificationCode({
+          email_code_type: {
+            email: body.email,
+            code: body.code,
+            type: TypeOfVerificationCode.FORGOT_PASSWORD,
+          },
+        }),
+      ])
+      return user
     } catch (error) {
       if (isUniqueConstraintPrismaError(error)) {
         throw EmailAlreadyExistsException
@@ -67,27 +75,54 @@ export class AuthService {
     }
   }
 
+  async validateVerificationCode({
+    email,
+    code,
+    type,
+  }: {
+    email: string
+    code: string
+    type: TypeOfVerificationCodeType
+  }) {
+    const vevificationCode = await this.authRepository.findUniqueVerificationCode({
+      email_code_type: {
+        email,
+        code,
+        type,
+      },
+    })
+    if (!vevificationCode) {
+      throw InvalidOTPException
+    }
+    if (vevificationCode.expiresAt < new Date()) {
+      throw OTPExpiredException
+    }
+    return vevificationCode
+  }
+
   async sendOTP(body: SendOTPBodyType) {
-    // 1. kiểm tra xem email đã tồn tại trong db chưa
-    const user = await this.sharedUserRepository.findUnique({ email: body.email })
-    if (user) {
+    const user = await this.sharedUserRepository.findUnique({
+      email: body.email,
+    })
+    if (body.type === TypeOfVerificationCode.REGISTER && user) {
       throw EmailAlreadyExistsException
     }
-    // 2. tạo mã OTP
+    if (body.type === TypeOfVerificationCode.FORGOT_PASSWORD && !user) {
+      throw EmailNotFoundException
+    }
+    // 2. Tạo mã OTP
     const code = generateOTP()
-    const verificationCode = this.authRepository.createVerificationCode({
+    await this.authRepository.createVerificationCode({
       email: body.email,
       code,
       type: body.type,
       expiresAt: addMilliseconds(new Date(), ms(envConfig.OTP_EXPIRES_IN)),
     })
-
-    // 3. Gửi OTP qua email
+    // 3. Gửi mã OTP
     const { error } = await this.emailService.sendOTP({
       email: body.email,
       code,
     })
-
     if (error) {
       throw FailedToSendOTPException
     }
@@ -208,6 +243,43 @@ export class AuthService {
         throw RefreshTokenAlreadyUsedException
       }
       throw new UnauthorizedException()
+    }
+  }
+
+  async forgotPassword(body: ForgotPasswordBodyType) {
+    const { email, code, newPassword } = body
+    // 1. Kiểm tra email đã tồn tại trong database chưa
+    const user = await this.sharedUserRepository.findUnique({
+      email,
+    })
+    if (!user) {
+      throw EmailNotFoundException
+    }
+    //2. Kiểm tra mã OTP có hợp lệ không
+    await this.validateVerificationCode({
+      email,
+      code,
+      type: TypeOfVerificationCode.FORGOT_PASSWORD,
+    })
+    //3. Cập nhật lại mật khẩu mới và xóa đi OTP
+    const hashedPassword = await this.hashingService.hash(newPassword)
+    await Promise.all([
+      this.authRepository.updateUser(
+        { id: user.id },
+        {
+          password: hashedPassword,
+        },
+      ),
+      this.authRepository.deleteVerificationCode({
+        email_code_type: {
+          email: body.email,
+          code: body.code,
+          type: TypeOfVerificationCode.FORGOT_PASSWORD,
+        },
+      }),
+    ])
+    return {
+      message: 'Đổi mật khẩu thành công',
     }
   }
 }
