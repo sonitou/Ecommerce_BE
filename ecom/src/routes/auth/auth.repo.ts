@@ -1,13 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'src/shared/services/prisma.service'
-import {
-  DeviceType,
-  RefreshTokenBodyType,
-  RefreshTokenType,
-  RegisterBodyType,
-  RoleType,
-  VerificationCodeType,
-} from './auth.model'
+import { DeviceType, RefreshTokenType, RoleType, VerificationCodeType } from './auth.model'
 import { UserType } from 'src/shared/models/shared-user-repo'
 import { TypeOfVerificationCodeType } from 'src/shared/constants/auth.constants'
 
