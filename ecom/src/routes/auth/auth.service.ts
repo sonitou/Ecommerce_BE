@@ -32,7 +32,7 @@ import {
   RefreshTokenAlreadyUsedException,
   TOTPAlreadyEnabledException,
   TOTPNotEnabledException,
-} from './error.model'
+} from './auth.error'
 import { SharedRoleRepository } from 'src/shared/repositories/shared-role.repo'
 import { TwoFactorService } from 'src/shared/services/2fa.service'
 
