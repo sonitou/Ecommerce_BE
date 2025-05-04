@@ -44,6 +44,13 @@ export const UnauthorizedAccessException = new UnauthorizedException('Error.Unau
 // Google auth related errors
 export const GoogleUserInfoError = new Error('Error.FailedToGetGoogleUserInfo')
 
+export const InvaliPasswordException = new UnprocessableEntityException([
+  {
+    message: 'Error.InvalidPassword',
+    path: 'password',
+  },
+])
+
 export const InvalidTOTPException = new UnprocessableEntityException([
   {
     message: 'Error.InvalidTOTP',
