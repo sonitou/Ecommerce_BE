@@ -26,8 +26,10 @@ import {
   InvalidOTPException,
   OTPExpiredException,
   RefreshTokenAlreadyUsedException,
-} from './auth.error'
+  TOTPAlreadyEnabledException,
+} from './error.model'
 import { SharedRoleRepository } from 'src/shared/repositories/shared-role.repo'
+import { TwoFactorService } from 'src/shared/services/2fa.service'
 
 @Injectable()
 export class AuthService {
@@ -39,6 +41,7 @@ export class AuthService {
     private readonly emailService: EmailService,
     private readonly tokenService: TokenService,
     private readonly sharedRoleRepository: SharedRoleRepository,
+    private readonly twoFactorService: TwoFactorService,
   ) {}
 
   async register(body: RegisterBodyType) {
@@ -280,6 +283,28 @@ export class AuthService {
     ])
     return {
       message: 'Đổi mật khẩu thành công',
+    }
+  }
+
+  async setupTwoFactorAuth(userId: number) {
+    // 1. Lấy thông tin user, kiểm tra xem user có tồn tại hay không, và xem họ đã bật 2FA chưa
+    const user = await this.sharedUserRepository.findUnique({
+      id: userId,
+    })
+    if (!user) {
+      throw EmailNotFoundException
+    }
+    if (user.totpSecret) {
+      throw TOTPAlreadyEnabledException
+    }
+    // 2. Tạo ra secret và uri
+    const { secret, uri } = this.twoFactorService.generateTOTPSecret(user.email)
+    // 3. Cập nhật secret vào user trong database
+    await this.authRepository.updateUser({ id: userId }, { totpSecret: secret })
+    // 4. Trả về secret và uri
+    return {
+      secret,
+      uri,
     }
   }
 }
