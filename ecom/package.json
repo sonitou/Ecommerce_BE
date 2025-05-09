@@ -8,6 +8,7 @@
   "scripts": {
     "build": "nest build",
     "init-seed-data": "ts-node initialScript/index.ts",
+    "create-permissions": "ts-node initialScript/create-permissions.ts",
     "email:dev": "email dev",
     "email:build": "email build",
     "email:export": "email export",
