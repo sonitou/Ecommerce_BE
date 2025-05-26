@@ -19,7 +19,6 @@ export class RoleController {
   constructor(private readonly roleService: RoleService) {}
 
   @Get()
-  @isPublic()
   @ZodSerializerDto(GetRolesResDTO)
   listRoleController(@Query() query: GetRolesQueryDTO) {
     return this.roleService.listRoleService({
@@ -29,7 +28,7 @@ export class RoleController {
   }
 
   @Get(':roleId')
-  @isPublic()
+  // @isPublic()
   @ZodSerializerDto(GetRoleDetailResDTO)
   findByIdRoleController(@Param() params: GetRoleParamsDTO) {
     return this.roleService.findByIdRoleService(params.roleId)
