@@ -1,5 +1,5 @@
 import { TypeOfVerificationCode } from 'src/shared/constants/auth.constants'
-import { UserSchema } from 'src/shared/models/shared-user-repo'
+import { UserSchema } from 'src/shared/models/shared-user.model'
 import { z } from 'zod'
 
 export const RegisterBodySchema = UserSchema.pick({

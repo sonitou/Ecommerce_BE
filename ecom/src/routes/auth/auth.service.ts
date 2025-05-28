@@ -40,7 +40,6 @@ import { TwoFactorService } from 'src/shared/services/2fa.service'
 export class AuthService {
   constructor(
     private readonly hashingService: HashingService,
-    private readonly rolesService: RolesService,
     private readonly authRepository: AuthRepository,
     private readonly sharedUserRepository: SharedUserRepository,
     private readonly emailService: EmailService,
