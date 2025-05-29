@@ -27,14 +27,15 @@ import {
   InvalidOTPException,
   InvalidTOTPAndCodeException,
   InvalidTOTPException,
-  InvaliPasswordException,
   OTPExpiredException,
   RefreshTokenAlreadyUsedException,
   TOTPAlreadyEnabledException,
   TOTPNotEnabledException,
+  UnauthorizedAccessException,
 } from './auth.error'
 import { SharedRoleRepository } from 'src/shared/repositories/shared-role.repo'
 import { TwoFactorService } from 'src/shared/services/2fa.service'
+import { InvalidPasswordException } from 'src/shared/error'
 
 @Injectable()
 export class AuthService {
@@ -69,7 +70,7 @@ export class AuthService {
           email_code_type: {
             email: body.email,
             code: body.code,
-            type: TypeOfVerificationCode.FORGOT_PASSWORD,
+            type: TypeOfVerificationCode.REGISTER,
           },
         }),
       ])
@@ -148,7 +149,7 @@ export class AuthService {
 
     const isValidPassword = await this.hashingService.comparePassword(body.password, user.password)
     if (!isValidPassword) {
-      throw InvaliPasswordException
+      throw InvalidPasswordException
     }
 
     // 2. Nếu user đã bật 2FA, kiểm tra mã OTP có hợp lệ không
@@ -249,7 +250,7 @@ export class AuthService {
       if (error instanceof HttpException) {
         throw error
       }
-      throw new UnauthorizedException()
+      throw UnauthorizedAccessException
     }
   }
 
@@ -275,7 +276,7 @@ export class AuthService {
       if (isNotFoundPrismaError(error)) {
         throw RefreshTokenAlreadyUsedException
       }
-      throw new UnauthorizedException()
+      throw UnauthorizedAccessException
     }
   }
 
@@ -297,10 +298,11 @@ export class AuthService {
     //3. Cập nhật lại mật khẩu mới và xóa đi OTP
     const hashedPassword = await this.hashingService.hash(newPassword)
     await Promise.all([
-      this.authRepository.updateUser(
+      this.sharedUserRepository.update(
         { id: user.id },
         {
           password: hashedPassword,
+          updatedById: user.id, // Cập nhật người đã cập nhật
         },
       ),
       this.authRepository.deleteVerificationCode({
@@ -330,7 +332,7 @@ export class AuthService {
     // 2. Tạo ra secret và uri
     const { secret, uri } = this.twoFactorService.generateTOTPSecret(user.email)
     // 3. Cập nhật secret vào user trong database
-    await this.authRepository.updateUser({ id: userId }, { totpSecret: secret })
+    await this.sharedUserRepository.update({ id: userId }, { totpSecret: secret, updatedById: userId })
     // 4. Trả về secret và uri
     return {
       secret,
@@ -369,7 +371,7 @@ export class AuthService {
     }
 
     // 4. Cập nhật secret thành null
-    await this.authRepository.updateUser({ id: userId }, { totpSecret: null, updatedById: userId })
+    await this.sharedUserRepository.update({ id: userId }, { totpSecret: null, updatedById: userId })
 
     // 5. Trả về thông báo
     return {
