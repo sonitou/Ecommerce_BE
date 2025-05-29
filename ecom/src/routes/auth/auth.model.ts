@@ -172,7 +172,6 @@ export const TwoFactorSetupResSchema = z.object({
   uri: z.string(),
 })
 
-export type RoleType = z.infer<typeof RoleSchema>
 export type RegisterBodyType = z.infer<typeof RegisterBodySchema>
 export type RegisterResType = z.infer<typeof RegisterResSchema>
 export type SendOTPBodyType = z.infer<typeof SendOTPBodySchema>
