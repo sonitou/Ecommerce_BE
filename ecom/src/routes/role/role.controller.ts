@@ -10,7 +10,6 @@ import {
   GetRolesResDTO,
   UpdateRoleBodyDTO,
 } from './role.dto'
-import { isPublic } from 'src/shared/decorators/auth.decorators'
 import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
 import { MessageResDTO } from 'src/shared/dtos/response.dto'
 
