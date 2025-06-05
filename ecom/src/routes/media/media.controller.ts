@@ -17,6 +17,7 @@ import * as path from 'path'
 import { UPLOAD_DIR } from 'src/shared/constants/order.constants'
 import { isPublic } from 'src/shared/decorators/auth.decorators'
 import { MediaService } from './media.service'
+import { ParseFilePipeWithUnlink } from './parse-file-pipe-with-unlink.pipe'
 
 @Controller('media')
 export class MediaController {
@@ -25,16 +26,16 @@ export class MediaController {
   @UseInterceptors(
     FilesInterceptor('files', 100, {
       limits: {
-        fileSize: 5 * 1024 * 1024, // 1MB
+        fileSize: 1 * 1024 * 1024, // 1MB
       },
     }),
   )
   async uploadFile(
     @UploadedFiles(
-      new ParseFilePipe({
+      new ParseFilePipeWithUnlink({
         validators: [
           new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }), // 5MB
-          // new FileTypeValidator({ fileType: /(jpg|jpeg|png|webp)$/ }),
+          // new FileTypeValidator({ fileType: /^image\/(jpeg|png|webp)$/ }),
         ],
       }),
     )
