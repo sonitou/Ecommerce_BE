@@ -10,6 +10,7 @@ import { SharedUserRepository } from './repositories/shared-user-repo'
 import { EmailService } from 'src/routes/auth/email.service'
 import { SharedRoleRepository } from './repositories/shared-role.repo'
 import { TwoFactorService } from './services/2fa.service'
+import { S3Service } from './services/s3.service'
 const sharedService = [
   PrismaService,
   HashingService,
@@ -18,6 +19,7 @@ const sharedService = [
   EmailService,
   SharedRoleRepository,
   TwoFactorService,
+  S3Service,
 ]
 @Global()
 @Module({
