@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common'
 import envConfig from '../config'
 import { Upload } from '@aws-sdk/lib-storage'
 import { readFileSync } from 'fs'
-import mime from 'mime-types'
+import * as mime from 'mime-types'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 
 @Injectable()
@@ -59,7 +59,7 @@ export class S3Service {
   createPresignedUrlWithClient(filename: string) {
     const contentType = mime.lookup(filename) || 'application/octet-stream'
     const command = new PutObjectCommand({ Bucket: envConfig.S3_BUCKET_NAME, Key: filename, ContentType: contentType })
-    return getSignedUrl(this.s3, command, { expiresIn: 10 })
+    return getSignedUrl(this.s3, command, { expiresIn: 3600 })
   }
 }
 

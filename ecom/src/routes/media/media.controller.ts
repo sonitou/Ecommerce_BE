@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   FileTypeValidator,
   Get,
@@ -18,6 +19,8 @@ import { UPLOAD_DIR } from 'src/shared/constants/order.constants'
 import { isPublic } from 'src/shared/decorators/auth.decorators'
 import { MediaService } from './media.service'
 import { ParseFilePipeWithUnlink } from './parse-file-pipe-with-unlink.pipe'
+import { ZodSerializerDto } from 'nestjs-zod'
+import { PresignedUploadFileBodyDTO, PresignedUploadFileResDTO } from './media.dto'
 
 @Controller('media')
 export class MediaController {
@@ -57,5 +60,12 @@ export class MediaController {
         res.status(notfound.getStatus()).json(notfound.getResponse())
       }
     })
+  }
+
+  @Post('images/upload/presigned-url')
+  @ZodSerializerDto(PresignedUploadFileResDTO)
+  @isPublic()
+  async createPresignedUrl(@Body() body: PresignedUploadFileBodyDTO) {
+    return this.mediaService.getPresignUrl(body)
   }
 }
