@@ -10,7 +10,7 @@ type SKU = {
   image: string
 }
 const variants: Variant[] = [
-  {s
+  {
     value: 'Màu sắc',
     options: ['Đen', 'Trắng', 'Xanh', 'Tím'],
   },
