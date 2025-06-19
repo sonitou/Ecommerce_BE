@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'src/shared/services/prisma.service'
-import { GetProductDetailResType, GetProductsQueryType, GetProductsResType } from './product.model'
+import {
+  CreateProductBodyType,
+  GetProductDetailResType,
+  GetProductsQueryType,
+  GetProductsResType,
+} from './product.model'
 import { ALL_LANGUAGE_CODE } from 'src/shared/constants/order.constants'
 import { ProductType } from 'src/shared/models/shared-product.model'
 
@@ -79,7 +84,54 @@ export class ProductRepo {
       },
     })
   }
+
   // - createProduct
+  createProduct({
+    createdById,
+    data,
+  }: {
+    createdById: number
+    data: CreateProductBodyType
+  }): Promise<GetProductDetailResType> {
+    const { skus, categories, ...productData } = data
+    return this.prismaService.product.create({
+      data: {
+        createdById,
+        ...productData,
+        categories: {
+          connect: categories.map((category) => ({ id: category })),
+        },
+        skus: {
+          createMany: {
+            data: skus,
+          },
+        },
+      },
+      include: {
+        productTranslations: {
+          where: { deletedAt: null },
+        },
+        skus: {
+          where: { deletedAt: null },
+        },
+        brand: {
+          include: {
+            brandTranslations: {
+              where: { deletedAt: null },
+            },
+          },
+        },
+        categories: {
+          where: { deletedAt: null },
+          include: {
+            categoryTranslations: {
+              where: { deletedAt: null },
+            },
+          },
+        },
+      },
+    })
+  }
   // - updateProduct
 
   // - deleteProduct
