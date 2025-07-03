@@ -9,6 +9,7 @@ import {
 import { ALL_LANGUAGE_CODE } from 'src/shared/constants/order.constants'
 import { ProductType } from 'src/shared/models/shared-product.model'
 import { Prisma } from '@prisma/client'
+import { OrderByType, SortBy, SortByType } from 'src/shared/constants/other.constants'
 
 @Injectable()
 export class ProductRepo {
@@ -26,6 +27,8 @@ export class ProductRepo {
     createdById,
     isPublic,
     languageId,
+    orderBy,
+    sortBy,
   }: {
     limit: number
     page: number
@@ -37,6 +40,8 @@ export class ProductRepo {
     createdById?: number
     isPublic?: boolean
     languageId: string
+    orderBy: OrderByType
+    sortBy: SortByType
   }): Promise<GetProductsResType> {
     const skip = (page - 1) * limit
     const take = limit
@@ -56,7 +61,47 @@ export class ProductRepo {
         OR: [{ publishedAt: null }, { publishedAt: { gt: new Date() } }],
       }
     }
-
+    if (name) {
+      where.name = {
+        contains: name,
+        mode: 'insensitive',
+      }
+    }
+    if (brandIds && brandIds.length > 0) {
+      where.brandId = {
+        in: brandIds,
+      }
+    }
+    if (categories && categories.length > 0) {
+      where.categories = {
+        some: {
+          id: {
+            in: categories,
+          },
+        },
+      }
+    }
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      where.basePrice = {
+        gte: minPrice,
+        lte: maxPrice,
+      }
+    }
+    // Mặc định sort theo createdAt mới nhất
+    let caculatedOrderBy: Prisma.ProductOrderByWithRelationInput | Prisma.ProductOrderByWithRelationInput[] = {
+      createdAt: orderBy,
+    }
+    if (sortBy === SortBy.Price) {
+      caculatedOrderBy = {
+        basePrice: orderBy,
+      }
+    } else if (sortBy === SortBy.Sale) {
+      caculatedOrderBy = {
+        orders: {
+          _count: orderBy,
+        },
+      }
+    }
     const [totalItems, data] = await Promise.all([
       this.prismaService.product.count({
         where,
@@ -67,10 +112,14 @@ export class ProductRepo {
           productTranslations: {
             where: languageId === ALL_LANGUAGE_CODE ? { deletedAt: null } : { deletedAt: null, languageId },
           },
+          orders: {
+            where: {
+              deletedAt: null,
+              status: 'DELIVERED',
+            },
+          },
         },
-        orderBy: {
-          createdAt: 'desc',
-        },
+        orderBy: caculatedOrderBy,
         skip,
         take,
       }),
@@ -105,15 +154,26 @@ export class ProductRepo {
     languageId: string
     isPublic?: boolean
   }): Promise<GetProductDetailResType | null> {
+    let where: Prisma.ProductWhereUniqueInput = {
+      id: productId,
+      deletedAt: null,
+    }
+    if (isPublic === true) {
+      where.publishedAt = {
+        lte: new Date(),
+        not: null,
+      }
+    } else if (isPublic === false) {
+      where = {
+        ...where,
+        OR: [{ publishedAt: null }, { publishedAt: { gt: new Date() } }],
+      }
+    }
     return this.prismaService.product.findUnique({
-      where: {
-        id: productId,
-        deletedAt: null,
-        publishedAt: isPublic ? { lte: new Date(), not: null } : undefined,
-      },
+      where,
       include: {
         productTranslations: {
-          where: languageId === ALL_LANGUAGE_CODE ? { deletedAt: null } : { deletedAt: null, languageId },
+          where: languageId === ALL_LANGUAGE_CODE ? { deletedAt: null } : { languageId, deletedAt: null },
         },
         skus: {
           where: {
@@ -123,7 +183,7 @@ export class ProductRepo {
         brand: {
           include: {
             brandTranslations: {
-              where: languageId === ALL_LANGUAGE_CODE ? { deletedAt: null } : { deletedAt: null, languageId },
+              where: languageId === ALL_LANGUAGE_CODE ? { deletedAt: null } : { languageId, deletedAt: null },
             },
           },
         },
@@ -133,7 +193,7 @@ export class ProductRepo {
           },
           include: {
             categoryTranslations: {
-              where: languageId === ALL_LANGUAGE_CODE ? { deletedAt: null } : { deletedAt: null, languageId },
+              where: languageId === ALL_LANGUAGE_CODE ? { deletedAt: null } : { languageId, deletedAt: null },
             },
           },
         },
@@ -155,12 +215,14 @@ export class ProductRepo {
         createdById,
         ...productData,
         categories: {
-          // dùng để nối sản phẩm vào các category đã có sẵn, theo kiểu quan hệ N-N
           connect: categories.map((category) => ({ id: category })),
         },
         skus: {
           createMany: {
-            data: skus,
+            data: skus.map((sku) => ({
+              ...sku,
+              createdById,
+            })),
           },
         },
       },
@@ -179,7 +241,9 @@ export class ProductRepo {
           },
         },
         categories: {
-          where: { deletedAt: null },
+          where: {
+            deletedAt: null,
+          },
           include: {
             categoryTranslations: {
               where: { deletedAt: null },
@@ -201,13 +265,11 @@ export class ProductRepo {
     data: UpdateProductBodyType
   }): Promise<ProductType> {
     const { skus: dataSkus, categories, ...productData } = data
-
     // SKU đã tồn tại trong DB nhưng không có trong data payload thì sẽ bị xóa
     // SKU đã tồn tại trong DB nhưng có trong data payload thì sẽ được cập nhật
     // SKY không tồn tại trong DB nhưng có trong data payload thì sẽ được thêm mới
 
     // 1. Lấy danh sách SKU hiện tại trong DB
-    // existingSKUs = [{ id: 1, value: 'M', stock: 10 }, { id: 2, value: 'L', stock: 5 },{ id: 3, value: 'XL', stock: 0 }]
     const existingSKUs = await this.prismaService.sKU.findMany({
       where: {
         productId: id,
@@ -216,11 +278,8 @@ export class ProductRepo {
     })
 
     // 2. Tìm các SKUs cần xóa (tồn tại trong DB nhưng không có trong data payload)
-    // dataSkus gửi từ client: [{value: 'M', stock: 8 }, { value: 'XL', stock: 3}]
-    // skusToDelete = [{ id: 2, value: 'L', stock: 5 }]
     const skusToDelete = existingSKUs.filter((sku) => dataSkus.every((dataSku) => dataSku.value !== sku.value))
     const skuIdsToDelete = skusToDelete.map((sku) => sku.id)
-    // skuIdsToDelete = [2]
 
     // 3. Mapping ID vào trong data payload
     const skusWithId = dataSkus.map((dataSku) => {
@@ -298,24 +357,23 @@ export class ProductRepo {
 
   // - deleteProduct
   async deleteProduct(
-    { id, deletedById }: { id: number; deletedById: number },
+    {
+      id,
+      deletedById,
+    }: {
+      id: number
+      deletedById: number
+    },
     isHard?: boolean,
   ): Promise<ProductType> {
     if (isHard) {
-      const [product] = await Promise.all([
-        this.prismaService.product.delete({
-          where: {
-            id,
-          },
-        }),
-        this.prismaService.sKU.deleteMany({
-          where: {
-            productId: id,
-          },
-        }),
-      ])
-      return product
+      return this.prismaService.product.delete({
+        where: {
+          id,
+        },
+      })
     }
+    const now = new Date()
     const [product] = await Promise.all([
       this.prismaService.product.update({
         where: {
@@ -323,7 +381,17 @@ export class ProductRepo {
           deletedAt: null,
         },
         data: {
-          deletedAt: new Date(),
+          deletedAt: now,
+          deletedById,
+        },
+      }),
+      this.prismaService.productTranslation.updateMany({
+        where: {
+          productId: id,
+          deletedAt: null,
+        },
+        data: {
+          deletedAt: now,
           deletedById,
         },
       }),
@@ -333,7 +401,7 @@ export class ProductRepo {
           deletedAt: null,
         },
         data: {
-          deletedAt: new Date(),
+          deletedAt: now,
           deletedById,
         },
       }),

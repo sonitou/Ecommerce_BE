@@ -211,6 +211,7 @@ model Product {
   images              String[]
    /// [Variants]
   variants            Json
+  orders              Order[]
   createdById         Int?
   updatedById         Int?
   deletedById         Int?
@@ -388,6 +389,7 @@ model Order {
   id          Int                  @id @default(autoincrement())
   userId      Int
   status      OrderStatus
+  products    Product[]
   createdById Int?
   updatedById Int?
   deletedById Int?
@@ -401,6 +403,7 @@ model Order {
   items       ProductSKUSnapshot[]
 
   @@index([deletedAt])
+  @@index([status, deletedAt])
 }
 
 model Review {
