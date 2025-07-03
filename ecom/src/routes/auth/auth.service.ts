@@ -133,6 +133,7 @@ export class AuthService {
     if (error) {
       throw FailedToSendOTPException
     }
+    console.log('Gửi mã OTP thành công', body.email, code)
     return { message: 'Gửi mã OTP thành công' }
   }
 

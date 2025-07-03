@@ -8,6 +8,7 @@ import {
 } from './product.model'
 import { ALL_LANGUAGE_CODE } from 'src/shared/constants/order.constants'
 import { ProductType } from 'src/shared/models/shared-product.model'
+import { Prisma } from '@prisma/client'
 
 @Injectable()
 export class ProductRepo {
@@ -40,11 +41,22 @@ export class ProductRepo {
     const skip = (page - 1) * limit
     const take = limit
 
-    const where = {
+    let where: Prisma.ProductWhereInput = {
       deletedAt: null,
       createdById: createdById ? createdById : undefined,
-      publishedAt: isPublic ? { lte: new Date(), not: null } : undefined,
     }
+    if (isPublic === true) {
+      where.publishedAt = {
+        lte: new Date(),
+        not: null,
+      }
+    } else if (isPublic === false) {
+      where = {
+        ...where,
+        OR: [{ publishedAt: null }, { publishedAt: { gt: new Date() } }],
+      }
+    }
+
     const [totalItems, data] = await Promise.all([
       this.prismaService.product.count({
         where,
