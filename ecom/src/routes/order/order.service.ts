@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { OrderRepo } from './order.repo'
-import { GetOrderListQueryType } from './order.model'
+import { CreateOrderBodyType, GetOrderListQueryType } from './order.model'
 
 @Injectable()
 export class OrderService {
@@ -8,5 +8,10 @@ export class OrderService {
 
   async listOrders(userId: number, query: GetOrderListQueryType) {
     return this.orderRepo.listOrders(userId, query)
+  }
+
+  async create(userId: number, body: CreateOrderBodyType) {
+    const result = await this.orderRepo.createOrder(userId, body)
+    return result
   }
 }
