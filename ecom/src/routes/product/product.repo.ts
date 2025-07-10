@@ -6,10 +6,9 @@ import {
   GetProductsResType,
   UpdateProductBodyType,
 } from './product.model'
-import { ALL_LANGUAGE_CODE } from 'src/shared/constants/order.constants'
 import { ProductType } from 'src/shared/models/shared-product.model'
 import { Prisma } from '@prisma/client'
-import { OrderByType, SortBy, SortByType } from 'src/shared/constants/other.constants'
+import { ALL_LANGUAGE_CODE, OrderByType, SortBy, SortByType } from 'src/shared/constants/other.constants'
 
 @Injectable()
 export class ProductRepo {

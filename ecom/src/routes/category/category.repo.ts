@@ -7,7 +7,7 @@ import {
   GetAllCategoriesResType,
   UpdateCategoryBodyType,
 } from './category.model'
-import { ALL_LANGUAGE_CODE } from 'src/shared/constants/order.constants'
+import { ALL_LANGUAGE_CODE } from 'src/shared/constants/other.constants'
 
 @Injectable()
 export class CategoryRepo {

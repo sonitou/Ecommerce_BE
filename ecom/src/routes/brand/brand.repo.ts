@@ -8,7 +8,7 @@ import {
   GetBrandsResType,
   UpdateBrandBodyType,
 } from './brand.model'
-import { ALL_LANGUAGE_CODE } from 'src/shared/constants/order.constants'
+import { ALL_LANGUAGE_CODE } from 'src/shared/constants/other.constants'
 
 @Injectable()
 export class BrandRepo {

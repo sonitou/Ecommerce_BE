@@ -1,12 +1,10 @@
 import {
   Body,
   Controller,
-  FileTypeValidator,
   Get,
   MaxFileSizeValidator,
   NotFoundException,
   Param,
-  ParseFilePipe,
   Post,
   Res,
   UploadedFiles,
@@ -15,12 +13,12 @@ import {
 import { FilesInterceptor } from '@nestjs/platform-express'
 import { Response } from 'express'
 import * as path from 'path'
-import { UPLOAD_DIR } from 'src/shared/constants/order.constants'
 import { isPublic } from 'src/shared/decorators/auth.decorators'
 import { MediaService } from './media.service'
 import { ParseFilePipeWithUnlink } from './parse-file-pipe-with-unlink.pipe'
 import { ZodSerializerDto } from 'nestjs-zod'
 import { PresignedUploadFileBodyDTO, PresignedUploadFileResDTO } from './media.dto'
+import { UPLOAD_DIR } from 'src/shared/constants/other.constants'
 
 @Controller('media')
 export class MediaController {
