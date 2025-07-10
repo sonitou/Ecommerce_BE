@@ -14,4 +14,12 @@ export class OrderService {
     const result = await this.orderRepo.createOrder(userId, body)
     return result
   }
+
+  cancel(userId: number, orderId: number) {
+    return this.orderRepo.cancelOrder(userId, orderId)
+  }
+
+  detail(userId: number, orderId: number) {
+    return this.orderRepo.getDetail(userId, orderId)
+  }
 }
