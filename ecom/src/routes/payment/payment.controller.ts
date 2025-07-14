@@ -1,7 +1,7 @@
 import { Body, Controller, Post } from '@nestjs/common'
 import { PaymentService } from './payment.service'
 import { ZodSerializerDto } from 'nestjs-zod'
-import { isPublic } from 'src/shared/decorators/auth.decorators'
+import { Auth, isPublic } from 'src/shared/decorators/auth.decorators'
 import { WebhookPaymentBodyDTO } from './payment.dto'
 import { MessageResDTO } from 'src/shared/dtos/response.dto'
 
@@ -10,8 +10,8 @@ export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
 
   @Post('/receiver')
+  @Auth(['PaymentAPIKey'])
   @ZodSerializerDto(MessageResDTO)
-  @isPublic()
   async receiver(@Body() body: WebhookPaymentBodyDTO) {
     return this.paymentService.receiver(body)
   }
