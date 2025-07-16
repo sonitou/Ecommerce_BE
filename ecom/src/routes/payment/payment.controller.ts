@@ -12,7 +12,7 @@ export class PaymentController {
   @Post('/receiver')
   @Auth(['PaymentAPIKey'])
   @ZodSerializerDto(MessageResDTO)
-  async receiver(@Body() body: WebhookPaymentBodyDTO) {
+  receiver(@Body() body: WebhookPaymentBodyDTO) {
     return this.paymentService.receiver(body)
   }
 }

@@ -20,10 +20,14 @@ import {
 import { OrderStatus } from 'src/shared/constants/order.constants'
 import { isNotFoundPrismaError } from 'src/shared/helpers'
 import { PaymentStatus } from 'src/shared/constants/payment.constants'
+import { OrderProducer } from './order.producer'
 
 @Injectable()
 export class OrderRepo {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private orderProducer: OrderProducer,
+  ) {}
 
   async listOrders(userId: number, query: GetOrderListQueryType): Promise<GetOrderListResType> {
     const { page, limit, status } = query
@@ -60,7 +64,19 @@ export class OrderRepo {
     }
   }
 
-  async createOrder(userId: number, body: CreateOrderBodyType): Promise<CreateOrderResType> {
+  async createOrder(
+    userId: number,
+    body: CreateOrderBodyType,
+  ): Promise<{
+    paymentId: number
+    orders: CreateOrderResType['orders']
+  }> {
+    // 1. Kiểm tra xem tất cả cartItemIds có tồn tại trong cơ sở dữ liệu hay không
+    // 2. Kiểm tra số lượng mua có lớn hơn số lượng tồn kho hay không
+    // 3. Kiểm tra xem tất cả sản phẩm mua có sản phẩm nào bị xóa hay ẩn không
+    // 4. Kiểm tra xem các skuId trong cartItem gửi lên có thuộc về shopid gửi lên không
+    // 5. Tạo order
+    // 6. Xóa cartItem
     const allBodyCartItemIds = body.map((item) => item.cartItemIds).flat()
     const cartItems = await this.prismaService.cartItem.findMany({
       where: {
@@ -104,6 +120,7 @@ export class OrderRepo {
     if (isExistNotReadyProduct) {
       throw ProductNotFoundException
     }
+
     // 4. Kiểm tra xem các skuId trong cartItem gửi lên có thuộc về shopid gửi lên không
     const cartItemMap = new Map<number, (typeof cartItems)[0]>()
     cartItems.forEach((item) => {
@@ -121,16 +138,17 @@ export class OrderRepo {
     if (!isValidShop) {
       throw SKUNotBelongToShopException
     }
-    // 5. Tạo order
-    const orders = await this.prismaService.$transaction(async (tx) => {
+
+    // 5. Tạo order và xóa cartItem trong transaction để đảm bảo tính toàn vẹn dữ liệu
+    const [paymentId, orders] = await this.prismaService.$transaction(async (tx) => {
       const payment = await tx.payment.create({
         data: {
           status: PaymentStatus.PENDING,
         },
       })
-      const orders$ = await Promise.all(
-        body.map(async (item) => {
-          return await tx.order.create({
+      const orders$ = Promise.all(
+        body.map((item) =>
+          tx.order.create({
             data: {
               userId,
               status: OrderStatus.PENDING_PAYMENT,
@@ -169,11 +187,10 @@ export class OrderRepo {
                 }),
               },
             },
-          })
-        }),
+          }),
+        ),
       )
-
-      const cartItem$ = await tx.cartItem.deleteMany({
+      const cartItem$ = tx.cartItem.deleteMany({
         where: {
           id: {
             in: allBodyCartItemIds,
@@ -194,14 +211,14 @@ export class OrderRepo {
           }),
         ),
       )
-      const [orders] = await Promise.all([orders$, cartItem$, sku$])
-      return orders
+      const addCancelPaymentJob$ = this.orderProducer.addCancelPaymentJob(payment.id)
+      const [orders] = await Promise.all([orders$, cartItem$, sku$, addCancelPaymentJob$])
+      return [payment.id, orders]
     })
-
     return {
+      paymentId,
       orders,
     }
-    // 6. Xóa cartItem
   }
 
   async getDetail(userId: number, orderid: number): Promise<GetOrderDetailResType> {
