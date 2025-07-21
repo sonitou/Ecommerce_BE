@@ -12,6 +12,7 @@ import { TwoFactorService } from './services/2fa.service'
 import { S3Service } from './services/s3.service'
 import { PaymentAPIKeyGuard } from './guards/payment-api-key.guard'
 import { SharedPaymentRepository } from './repositories/shared-payment.repo'
+import { SharedWebsocketRepository } from './repositories/shared-websocket.repo'
 const sharedService = [
   PrismaService,
   HashingService,
@@ -22,6 +23,7 @@ const sharedService = [
   TwoFactorService,
   S3Service,
   SharedPaymentRepository,
+  SharedWebsocketRepository,
 ]
 @Global()
 @Module({
