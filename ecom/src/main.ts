@@ -9,8 +9,10 @@ import { patchNestJsSwagger } from 'nestjs-zod'
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule)
   app.enableCors()
+  app.set('trust proxy', 'loopback') // Trust requests from the loopback address
 
   patchNestJsSwagger()
+  app.set('trust proxy', 'loopback') // Trust requests from the loopback address
   const config = new DocumentBuilder()
     .setTitle('Ecommerce API')
     .setDescription('The API for the ecommerce application')
