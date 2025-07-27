@@ -417,6 +417,7 @@ model Order {
   status      OrderStatus
   items       ProductSKUSnapshot[]
   products    Product[]
+  reviews     Review[]
   /// [Receiver]
   receiver    Json
   shopId      Int?
@@ -443,11 +444,31 @@ model Review {
   content   String
   rating    Int
   productId Int
+  product   Product  @relation(fields: [productId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  orderId   Int
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  medias    ReviewMedia[]
+  updateCount Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  product   Product  @relation(fields: [productId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  user      User     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([orderId, productId])
+  @@index([productId])
+  @@index([userId])
+
+}
+
+model ReviewMedia {
+  id        Int      @id @default(autoincrement())
+  url       String   @db.VarChar(1000)
+  type      MediaType
+  reviewId  Int
+  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  createdAt DateTime @default(now())
+
+  @@index([reviewId])
 }
 
 model PaymentTransaction {
@@ -529,4 +550,11 @@ enum HTTPMethod {
   PATCH
   OPTIONS
   HEAD
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+  AUDIO
+  DOCUMENT
 }
