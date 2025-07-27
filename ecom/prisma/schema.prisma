@@ -555,6 +555,5 @@ enum HTTPMethod {
 enum MediaType {
   IMAGE
   VIDEO
-  AUDIO
   DOCUMENT
 }
