@@ -42,6 +42,8 @@ export const CreateOrderBodySchema = z
   )
   .min(1)
 
+export const DeliveredOrderBodySchema = z.object({})
+export const DeliveredOrderResSchema = OrderSchema
 export const CreateOrderResSchema = z.object({ orders: z.array(OrderSchema), paymentId: z.number() })
 export const CancelOrderBodySchema = z.object({})
 export const CancelOrderResSchema = OrderSchema
@@ -59,3 +61,4 @@ export type GetOrderParamsType = z.infer<typeof GetOrderParamsSchema>
 export type CreateOrderBodyType = z.infer<typeof CreateOrderBodySchema>
 export type CreateOrderResType = z.infer<typeof CreateOrderResSchema>
 export type CancelOrderResType = z.infer<typeof CancelOrderResSchema>
+export type DeliveredOrderResType = z.infer<typeof DeliveredOrderResSchema>

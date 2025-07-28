@@ -22,4 +22,8 @@ export class OrderService {
   detail(userId: number, orderId: number) {
     return this.orderRepo.getDetail(userId, orderId)
   }
+
+  delivered(userId: number, orderId: number) {
+    return this.orderRepo.markDelivered(userId, orderId)
+  }
 }

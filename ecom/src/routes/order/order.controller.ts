@@ -6,6 +6,8 @@ import {
   CancelOrderResDTO,
   CreateOrderBodyDTO,
   CreateOrderResDTO,
+  DeliveredOrderBodyDTO,
+  DeliveredOrderResDTO,
   GetOrderDetailResDTO,
   GetOrderListQueryDTO,
   GetOrderListResDTO,
@@ -39,5 +41,11 @@ export class OrderController {
   @ZodSerializerDto(CancelOrderResDTO)
   cancel(@ActiveUser('userId') userId: number, @Param() param: GetOrderParamsDTO, @Body() _: CancelOrderBodyDTO) {
     return this.orderService.cancel(userId, param.orderId)
+  }
+
+  @Put(':orderId/delivered')
+  @ZodSerializerDto(DeliveredOrderResDTO)
+  delivered(@ActiveUser('userId') userId: number, @Param() param: GetOrderParamsDTO, @Body() _: DeliveredOrderBodyDTO) {
+    return this.orderService.delivered(userId, param.orderId)
   }
 }

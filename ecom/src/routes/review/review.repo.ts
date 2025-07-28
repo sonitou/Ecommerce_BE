@@ -9,6 +9,7 @@ import {
 } from './review.model'
 import { PaginationQueryType } from 'src/shared/models/request.model'
 import { OrderStatus } from 'src/shared/constants/order.constants'
+import { isUniqueConstraintPrismaError } from 'src/shared/helpers'
 
 @Injectable()
 export class ReviewRepo {
@@ -89,30 +90,42 @@ export class ReviewRepo {
 
     return this.prismaService.$transaction(async (tx) => {
       // Create review
-      const review = await tx.review.create({
-        data: {
-          content,
-          rating,
-          productId,
-          orderId,
-          userId,
-        },
-        // include: {
-        //   medias: true,
-        //   user: {
-        //     select: {
-        //       id: true,
-        //       name: true,
-        //       avatar: true,
-        //     },
-        //   },
-        // },
-      })
-      // .catch((error) => {
-      //   if (isUniqueConstraintPrismaError(error)) {
-      //     throw new ConflictException('Đánh giá đã tồn tại hoặc có lỗi khi tạo đánh giá')
-      //   }
-      //   throw error
+      let review
+      try {
+        review = await tx.review.create({
+          data: {
+            content,
+            rating,
+            productId,
+            orderId,
+            userId,
+          },
+        })
+      } catch (error) {
+        if (isUniqueConstraintPrismaError(error)) {
+          throw new ConflictException('Đánh giá đã tồn tại hoặc có lỗi khi tạo đánh giá')
+        }
+        throw error
+      }
+
+      // const review = await tx.review.create({
+      //   data: {
+      //     content,
+      //     rating,
+      //     productId,
+      //     orderId,
+      //     userId,
+      //   },
+      //   // include: {
+      //   //   medias: true,
+      //   //   user: {
+      //   //     select: {
+      //   //       id: true,
+      //   //       name: true,
+      //   //       avatar: true,
+      //   //     },
+      //   //   },
+      //   // },
       // })
 
       // Create review medias (nếu có)

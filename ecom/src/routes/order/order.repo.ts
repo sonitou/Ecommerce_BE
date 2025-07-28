@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import { PrismaService } from 'src/shared/services/prisma.service'
 import {
   CancelOrderResType,
   CreateOrderBodyType,
   CreateOrderResType,
+  DeliveredOrderResType,
   GetOrderDetailResType,
   GetOrderListQueryType,
   GetOrderListResType,
@@ -11,6 +12,7 @@ import {
 import { Prisma } from '@prisma/client'
 import {
   CannotCancelOrderException,
+  CannotDeliveredOrderException,
   NotFoundCartItemException,
   OrderNotFoundException,
   OutOfStockSKUException,
@@ -258,6 +260,38 @@ export class OrderRepo {
         },
         data: {
           status: OrderStatus.CANCELLED,
+          updatedById: userId,
+        },
+      })
+      return updatedOrder
+    } catch (error) {
+      if (isNotFoundPrismaError(error)) {
+        throw OrderNotFoundException
+      }
+      throw error
+    }
+  }
+
+  async markDelivered(userId: number, orderId: number): Promise<DeliveredOrderResType> {
+    try {
+      const order = await this.prismaService.order.findUniqueOrThrow({
+        where: {
+          id: orderId,
+          userId,
+          deletedAt: null,
+        },
+      })
+      if (order.status !== OrderStatus.PENDING_PICKUP) {
+        throw CannotDeliveredOrderException
+      }
+      const updatedOrder = await this.prismaService.order.update({
+        where: {
+          id: orderId,
+          userId,
+          deletedAt: null,
+        },
+        data: {
+          status: OrderStatus.DELIVERED,
           updatedById: userId,
         },
       })

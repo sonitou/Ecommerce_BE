@@ -4,6 +4,8 @@ import {
   CancelOrderResSchema,
   CreateOrderBodySchema,
   CreateOrderResSchema,
+  DeliveredOrderBodySchema,
+  DeliveredOrderResSchema,
   GetOrderDetailResSchema,
   GetOrderListQuerySchema,
   GetOrderListResSchema,
@@ -25,3 +27,7 @@ export class CreateOrderResDTO extends createZodDto(CreateOrderResSchema) {}
 export class CancelOrderResDTO extends createZodDto(CancelOrderResSchema) {}
 
 export class GetOrderParamsDTO extends createZodDto(GetOrderParamsSchema) {}
+
+export class DeliveredOrderBodyDTO extends createZodDto(DeliveredOrderBodySchema) {}
+
+export class DeliveredOrderResDTO extends createZodDto(DeliveredOrderResSchema) {}
