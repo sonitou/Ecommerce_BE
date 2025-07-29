@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common'
+import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common'
 import { PermissionService } from './permission.service'
 import { ZodSerializerDto } from 'nestjs-zod'
 import {

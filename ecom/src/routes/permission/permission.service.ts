@@ -1,14 +1,19 @@
-import { Injectable } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import { PermissionRepo } from './permission.repo'
 import { CreatePermissionBodyType, GetPermissionsQueryType } from './permission.model'
 import { NotFoundRecordException } from 'src/shared/error'
 import { isNotFoundPrismaError, isUniqueConstraintPrismaError } from 'src/shared/helpers'
 import { PermissionAlreadyExistsException } from './permission.error'
 import { UpdatePermissionBodyDTO } from './permission.dto'
+import { CACHE_MANAGER } from '@nestjs/cache-manager'
+import { Cache } from 'cache-manager'
 
 @Injectable()
 export class PermissionService {
-  constructor(private permissionRepo: PermissionRepo) {}
+  constructor(
+    private permissionRepo: PermissionRepo,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  ) {}
 
   async list(pagination: GetPermissionsQueryType) {
     const data = await this.permissionRepo.listRepo(pagination)
@@ -44,6 +49,8 @@ export class PermissionService {
         data,
         updatedById,
       })
+      // Xoá cache của tất cả role có permission này
+      await this.invalidateRoleCacheByPermissionId(id)
       return permission
     } catch (error) {
       if (isNotFoundPrismaError(error)) {
@@ -62,6 +69,8 @@ export class PermissionService {
         id,
         deletedById,
       })
+      // Xoá cache của tất cả role có permission này
+      await this.invalidateRoleCacheByPermissionId(id)
       return {
         message: 'Delete successfully',
       }
@@ -70,6 +79,17 @@ export class PermissionService {
         throw NotFoundRecordException
       }
       throw error
+    }
+  }
+
+  // Xoá cache cho tất cả role liên quan tới permissionId
+  private async invalidateRoleCacheByPermissionId(permissionId: number) {
+    // Tìm tất cả role có permission này
+    const affectedRoles = await this.permissionRepo.findRolesByPermissionId(permissionId)
+    if (affectedRoles.length) {
+      for (const role of affectedRoles) {
+        await this.cacheManager.del(`role${role.id}`)
+      }
     }
   }
 }
