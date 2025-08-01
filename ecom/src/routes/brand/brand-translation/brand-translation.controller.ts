@@ -10,12 +10,15 @@ import { ZodSerializerDto } from 'nestjs-zod'
 import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
 import { isPublic } from 'src/shared/decorators/auth.decorators'
 import { MessageResDTO } from 'src/shared/dtos/response.dto'
+import { ApiBearerAuth, ApiParam } from '@nestjs/swagger'
 
 @Controller('brand-translations')
+@ApiBearerAuth()
 export class BrandTranslationController {
   constructor(private readonly brandTranslationService: BrandTranslationService) {}
 
   @Get(':brandTranslationId')
+  @ApiParam({ name: 'brandTranslationId', type: String })
   @isPublic()
   @ZodSerializerDto(GetBrandTranslationDetailResDTO)
   findByIdBrandTranslationController(@Param() params: GetBrandTranslationParamsDTO) {
@@ -32,6 +35,7 @@ export class BrandTranslationController {
   }
 
   @Put(':brandTranslationId')
+  @ApiParam({ name: 'brandTranslationId', type: String })
   @ZodSerializerDto(GetBrandTranslationDetailResDTO)
   updateBrandTranslationController(
     @Param() params: GetBrandTranslationParamsDTO,
@@ -46,6 +50,7 @@ export class BrandTranslationController {
   }
 
   @Delete(':brandTranslationId')
+  @ApiParam({ name: 'brandTranslationId', type: String })
   @ZodSerializerDto(MessageResDTO)
   deleteBrandTranslationController(
     @Param() params: GetBrandTranslationParamsDTO,

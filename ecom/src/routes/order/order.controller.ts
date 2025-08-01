@@ -14,8 +14,10 @@ import {
   GetOrderParamsDTO,
 } from './order.dto'
 import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
+import { ApiBearerAuth, ApiParam } from '@nestjs/swagger'
 
 @Controller('orders')
+@ApiBearerAuth()
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
@@ -32,6 +34,7 @@ export class OrderController {
   }
 
   @Get(':orderId')
+  @ApiParam({ name: 'orderId', type: String })
   @ZodSerializerDto(GetOrderDetailResDTO)
   detail(@ActiveUser('userId') userId: number, @Param() param: GetOrderParamsDTO) {
     return this.orderService.detail(userId, param.orderId)
@@ -39,11 +42,13 @@ export class OrderController {
 
   @Put(':orderId')
   @ZodSerializerDto(CancelOrderResDTO)
+  @ApiParam({ name: 'orderId', type: String })
   cancel(@ActiveUser('userId') userId: number, @Param() param: GetOrderParamsDTO, @Body() _: CancelOrderBodyDTO) {
     return this.orderService.cancel(userId, param.orderId)
   }
 
   @Put(':orderId/delivered')
+  @ApiParam({ name: 'orderId', type: String })
   @ZodSerializerDto(DeliveredOrderResDTO)
   delivered(@ActiveUser('userId') userId: number, @Param() param: GetOrderParamsDTO, @Body() _: DeliveredOrderBodyDTO) {
     return this.orderService.delivered(userId, param.orderId)

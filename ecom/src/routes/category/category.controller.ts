@@ -12,8 +12,10 @@ import {
 } from './category.dto'
 import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
 import { MessageResDTO } from 'src/shared/dtos/response.dto'
+import { ApiBearerAuth, ApiParam } from '@nestjs/swagger'
 
 @Controller('categories')
+@ApiBearerAuth()
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
@@ -25,6 +27,7 @@ export class CategoryController {
   }
 
   @Get(':categoryId')
+  @ApiParam({ name: 'categoryId', type: String })
   @isPublic()
   @ZodSerializerDto(GetCategoryDetailResDTO)
   findByIdCategoryController(@Param() param: GetCategoryParamsDTO) {
@@ -41,6 +44,7 @@ export class CategoryController {
   }
 
   @Put(':categoryId')
+  @ApiParam({ name: 'categoryId', type: String })
   @ZodSerializerDto(GetCategoryDetailResDTO)
   updateCategoryController(
     @Param() param: GetCategoryParamsDTO,
@@ -55,6 +59,7 @@ export class CategoryController {
   }
 
   @Delete(':categoryId')
+  @ApiParam({ name: 'categoryId', type: String })
   @ZodSerializerDto(MessageResDTO)
   deleteCategoryController(@Param() params: GetCategoryParamsDTO, @ActiveUser('userId') userId: number) {
     return this.categoryService.deleteCategoryService({

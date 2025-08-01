@@ -12,8 +12,10 @@ import {
 } from './role.dto'
 import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
 import { MessageResDTO } from 'src/shared/dtos/response.dto'
+import { ApiBearerAuth, ApiParam } from '@nestjs/swagger'
 
 @Controller('roles')
+@ApiBearerAuth()
 export class RoleController {
   constructor(private readonly roleService: RoleService) {}
 
@@ -27,6 +29,7 @@ export class RoleController {
   }
 
   @Get(':roleId')
+  @ApiParam({ name: 'roleId', type: String })
   // @isPublic()
   @ZodSerializerDto(GetRoleDetailResDTO)
   findByIdRoleController(@Param() params: GetRoleParamsDTO) {
@@ -43,6 +46,7 @@ export class RoleController {
   }
 
   @Put(':roleId')
+  @ApiParam({ name: 'roleId', type: String })
   @ZodSerializerDto(GetRoleDetailResDTO)
   updateRoleController(
     @Param() params: GetRoleParamsDTO,
@@ -57,6 +61,7 @@ export class RoleController {
   }
 
   @Delete(':roleId')
+  @ApiParam({ name: 'roleId', type: String })
   @ZodSerializerDto(MessageResDTO)
   deleteRoleController(@Param() params: GetRoleParamsDTO, @ActiveUser('userId') userId: number) {
     return this.roleService.deleteRoleService({

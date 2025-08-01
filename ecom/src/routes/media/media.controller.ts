@@ -19,8 +19,10 @@ import { ParseFilePipeWithUnlink } from './parse-file-pipe-with-unlink.pipe'
 import { ZodSerializerDto } from 'nestjs-zod'
 import { PresignedUploadFileBodyDTO, PresignedUploadFileResDTO } from './media.dto'
 import { UPLOAD_DIR } from 'src/shared/constants/other.constants'
+import { ApiBearerAuth } from '@nestjs/swagger'
 
 @Controller('media')
+@ApiBearerAuth()
 export class MediaController {
   constructor(private readonly mediaService: MediaService) {}
   @Post('images/upload')

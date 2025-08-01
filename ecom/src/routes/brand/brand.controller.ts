@@ -12,8 +12,10 @@ import {
 } from './brand.dto'
 import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
 import { MessageResDTO } from 'src/shared/dtos/response.dto'
+import { ApiBearerAuth, ApiParam } from '@nestjs/swagger'
 
 @Controller('brands')
+@ApiBearerAuth()
 export class BrandController {
   constructor(private readonly brandService: BrandService) {}
 
@@ -25,6 +27,7 @@ export class BrandController {
   }
 
   @Get(':brandId')
+  @ApiParam({ name: 'brandId', type: String })
   @isPublic()
   @ZodSerializerDto(GetBrandDetailResDTO)
   findByIdBrandController(@Param() param: GetBrandParamsDTO) {
@@ -41,6 +44,7 @@ export class BrandController {
   }
 
   @Put(':brandId')
+  @ApiParam({ name: 'brandId', type: String })
   @ZodSerializerDto(GetBrandDetailResDTO)
   updateBrandController(
     @Param() param: GetBrandParamsDTO,
@@ -55,6 +59,7 @@ export class BrandController {
   }
 
   @Delete(':brandId')
+  @ApiParam({ name: 'brandId', type: String })
   @ZodSerializerDto(MessageResDTO)
   deleteBrandController(@Param() param: GetBrandParamsDTO, @ActiveUser('userId') userId: number) {
     return this.brandService.deleteBrandService({

@@ -1,4 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common'
+import { ApiBearerAuth, ApiParam } from '@nestjs/swagger'
 import { ZodSerializerDto } from 'nestjs-zod'
 import {
   CreateLanguageBodyDTO,
@@ -12,6 +13,7 @@ import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
 import { MessageResDTO } from 'src/shared/dtos/response.dto'
 
 @Controller('languages')
+@ApiBearerAuth()
 export class LanguageController {
   constructor(private readonly languageService: LanguageService) {}
 
@@ -22,6 +24,7 @@ export class LanguageController {
   }
 
   @Get(':languageId')
+  @ApiParam({ name: 'languageId', type: String })
   @ZodSerializerDto(GetLanguageDetailResDTO)
   findById(@Param() params: GetLanguageParamsDTO) {
     return this.languageService.findById(params.languageId)
@@ -40,6 +43,7 @@ export class LanguageController {
   // Kiểm tra soft delete: Theo nguyên tắc chung của soft delete, không nên cho phép cập nhật bản ghi đã bị xóa trừ khi có yêu cầu đặc biệt (ví dụ: khôi phục hoặc chỉnh sửa dữ liệu lịch sử).
 
   @Put(':languageId')
+  @ApiParam({ name: 'languageId', type: String })
   @ZodSerializerDto(GetLanguageDetailResDTO)
   update(
     @Body() body: UpdateLanguageBodyDTO,
@@ -54,6 +58,7 @@ export class LanguageController {
   }
 
   @Delete(':languageId')
+  @ApiParam({ name: 'languageId', type: String })
   @ZodSerializerDto(MessageResDTO)
   delete(@Param() params: GetLanguageParamsDTO) {
     return this.languageService.delete(params.languageId)

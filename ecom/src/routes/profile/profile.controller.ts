@@ -5,8 +5,10 @@ import { GetUserProfileResDTO, UpdateProfileResDTO } from 'src/shared/dtos/share
 import { ProfileService } from './profile.service'
 import { ChangePasswordBodyDTO, UpdateMeBodyDTO } from './profile.dto'
 import { MessageResDTO } from 'src/shared/dtos/response.dto'
+import { ApiBearerAuth } from '@nestjs/swagger'
 
 @Controller('profile')
+@ApiBearerAuth()
 export class ProfileController {
   constructor(private readonly profileService: ProfileService) {}
 

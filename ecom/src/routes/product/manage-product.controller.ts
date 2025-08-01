@@ -13,8 +13,10 @@ import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
 import { MessageResDTO } from 'src/shared/dtos/response.dto'
 import { ManageProductService } from './manage-product.service'
 import { AccessTokenPayload } from 'src/shared/types/jwt.types'
+import { ApiBearerAuth, ApiParam } from '@nestjs/swagger'
 
 @Controller('manage-product/products')
+@ApiBearerAuth()
 export class ManageProductController {
   constructor(private readonly manageProductService: ManageProductService) {}
 
@@ -29,6 +31,7 @@ export class ManageProductController {
   }
 
   @Get(':productId')
+  @ApiParam({ name: 'productId', type: String })
   @ZodSerializerDto(GetProductDetailResDTO)
   findById(@Param() params: GetProductParamsDTO, @ActiveUser() user: AccessTokenPayload) {
     return this.manageProductService.getDetail({
@@ -48,6 +51,7 @@ export class ManageProductController {
   }
 
   @Put(':productId')
+  @ApiParam({ name: 'productId', type: String })
   @ZodSerializerDto(ProductDTO)
   update(
     @Body() body: UpdateProductBodyDTO,
@@ -63,6 +67,7 @@ export class ManageProductController {
   }
 
   @Delete(':productId')
+  @ApiParam({ name: 'productId', type: String })
   @ZodSerializerDto(MessageResDTO)
   delete(@Param() params: GetProductParamsDTO, @ActiveUser() user: AccessTokenPayload) {
     return this.manageProductService.delete({

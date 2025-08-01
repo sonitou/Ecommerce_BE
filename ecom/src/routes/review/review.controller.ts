@@ -13,8 +13,10 @@ import {
 } from './review.dto'
 import { PaginationQueryDTO } from 'src/shared/dtos/request.dto'
 import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
+import { ApiBearerAuth, ApiParam } from '@nestjs/swagger'
 
 @Controller('reviews')
+@ApiBearerAuth()
 export class ReviewController {
   constructor(private readonly reviewService: ReviewService) {}
 
@@ -27,6 +29,7 @@ export class ReviewController {
   // Lấy danh sách review theo sản phẩm
   @isPublic()
   @Get('product/:productId')
+  @ApiParam({ name: 'productId', type: String })
   @ZodSerializerDto(GetReviewsDTO)
   getReviews(@Param() params: GetReviewsParamsDTO, @Query() pagination: PaginationQueryDTO) {
     return this.reviewService.listReviews(params.productId, pagination)
@@ -34,6 +37,7 @@ export class ReviewController {
 
   // Update review (yêu cầu đăng nhập)
   @Put(':reviewId')
+  @ApiParam({ name: 'reviewId', type: String })
   @ZodSerializerDto(UpdateReviewResDto)
   updateReview(
     @Param() params: GetReviewDetailParamsDTO,

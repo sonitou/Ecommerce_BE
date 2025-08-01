@@ -9,8 +9,10 @@ import {
 } from './product-translation.dto'
 import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
 import { MessageResDTO } from 'src/shared/dtos/response.dto'
+import { ApiBearerAuth, ApiParam } from '@nestjs/swagger'
 
 @Controller('products-translations')
+@ApiBearerAuth()
 export class ProductTranslationController {
   constructor(private readonly productTranslationService: ProductTranslationService) {}
 
@@ -30,6 +32,7 @@ export class ProductTranslationController {
   }
 
   @Put(':productTranslationId')
+  @ApiParam({ name: 'productTranslationId', type: String })
   @ZodSerializerDto(GetProductTranslationDetailResDTO)
   updateProductTranslation(
     @Param() params: GetProductTranslationParamsDTO,
@@ -44,6 +47,7 @@ export class ProductTranslationController {
   }
 
   @Delete(':productTranslationId')
+  @ApiParam({ name: 'productTranslationId', type: String })
   @ZodSerializerDto(MessageResDTO)
   deleteProductTranslation(@Param() params: GetProductTranslationParamsDTO, @ActiveUser('userId') userId: number) {
     return this.productTranslationService.deleteProductTranslation({

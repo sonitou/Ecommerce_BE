@@ -11,8 +11,10 @@ import {
 } from './permission.dto'
 import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
 import { MessageResDTO } from 'src/shared/dtos/response.dto'
+import { ApiBearerAuth, ApiParam } from '@nestjs/swagger'
 
 @Controller('permissions')
+@ApiBearerAuth()
 export class PermissionController {
   constructor(private readonly permissionService: PermissionService) {}
 
@@ -26,6 +28,7 @@ export class PermissionController {
   }
 
   @Get(':permissionId')
+  @ApiParam({ name: 'permissionId', type: String })
   @ZodSerializerDto(GetPermissionDetailResDTO)
   findByIdPermission(@Param() params: GetPermissionParamsDTO) {
     return this.permissionService.findById(params.permissionId)
@@ -41,6 +44,7 @@ export class PermissionController {
   }
 
   @Post(':permissionId')
+  @ApiParam({ name: 'permissionId', type: String })
   @ZodSerializerDto(GetPermissionDetailResDTO)
   updatePermission(
     @Body() body: UpdatePermissionBodyDTO,
@@ -55,6 +59,7 @@ export class PermissionController {
   }
 
   @Post(':permissionId')
+  @ApiParam({ name: 'permissionId', type: String })
   @ZodSerializerDto(MessageResDTO)
   deletePermission(@Param() params: GetPermissionParamsDTO, @ActiveUser('userId') userId: number) {
     return this.permissionService.delete({

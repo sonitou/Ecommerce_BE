@@ -12,8 +12,10 @@ import {
   UpdateCartItemBodyDTO,
 } from './cart.dto'
 import { MessageResDTO } from 'src/shared/dtos/response.dto'
+import { ApiBearerAuth, ApiParam } from '@nestjs/swagger'
 
 @Controller('cart')
+@ApiBearerAuth()
 export class CartController {
   constructor(private readonly cartService: CartService) {}
 
@@ -30,6 +32,7 @@ export class CartController {
   }
 
   @Put(':cartItemId')
+  @ApiParam({ name: 'cartItemId', type: String })
   @ZodSerializerDto(CartItemDTO)
   updateCartItem(
     @ActiveUser('userId') userId: number,

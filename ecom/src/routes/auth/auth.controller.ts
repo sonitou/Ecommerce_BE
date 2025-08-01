@@ -23,6 +23,7 @@ import { Response } from 'express'
 import envConfig from 'src/shared/config'
 import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
 import { EmptyBodyDTO } from 'src/shared/dtos/request.dto'
+import { ApiBearerAuth } from '@nestjs/swagger'
 
 @Controller('auth')
 export class AuthController {

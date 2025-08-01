@@ -13,7 +13,7 @@ import { GetUserProfileResDTO, UpdateProfileResDTO } from 'src/shared/dtos/share
 import { ActiveUser } from 'src/shared/decorators/active-user.decorator'
 import { ActiveRolePermissions } from 'src/shared/decorators/active-role-permissions.decorator'
 import { MessageResDTO } from 'src/shared/dtos/response.dto'
-import { ApiBearerAuth } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiParam } from '@nestjs/swagger'
 
 @Controller('user')
 @ApiBearerAuth()
@@ -31,6 +31,7 @@ export class UserController {
 
   @Get(':userId')
   @ZodSerializerDto(GetUserProfileResDTO)
+  @ApiParam({ name: 'userId', type: String })
   findByIdUserController(@Param() param: GetUsersParamsDTO) {
     return this.userService.findByIdUserService(param.userId)
   }
@@ -51,6 +52,7 @@ export class UserController {
 
   @Put(':userId')
   @ZodSerializerDto(UpdateProfileResDTO)
+  @ApiParam({ name: 'userId', type: String })
   updateUserController(
     @Body() body: UpdateUserBodyDTO,
     @ActiveUser('userId') userId: number,
@@ -66,6 +68,7 @@ export class UserController {
   }
 
   @Delete(':userId')
+  @ApiParam({ name: 'userId', type: String })
   @ZodSerializerDto(MessageResDTO)
   deleteController(
     @Param() param: GetUsersParamsDTO,

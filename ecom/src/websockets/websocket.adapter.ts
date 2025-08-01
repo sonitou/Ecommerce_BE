@@ -7,7 +7,6 @@ import { TokenService } from 'src/shared/services/token.service'
 
 import { createAdapter } from '@socket.io/redis-adapter'
 import { createClient } from 'redis'
-import { env } from 'process'
 import envConfig from 'src/shared/config'
 
 const namespaces = ['payment', 'chat']
