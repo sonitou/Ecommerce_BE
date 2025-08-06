@@ -6,8 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "preinstall": "npm install",
-    "build": "tsc -p tsconfig.build.json",
+    "build": "nest build",
     "init-seed-data": "ts-node initialScript/index.ts",
     "create-permissions": "ts-node initialScript/create-permissions.ts",
     "create-product": "ts-node initialScript/create-product.ts",
